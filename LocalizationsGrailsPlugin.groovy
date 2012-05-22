@@ -5,8 +5,8 @@ class LocalizationsGrailsPlugin {
     def dependsOn = [:]
 
     // TODO Fill in these fields
-    def author = "Paul Fernley"
-    def authorEmail = "paul@pfernley.orangehome.co.uk"
+    def author = "Paul Fernley, Eamonn O'Connell"
+    def authorEmail = "eamonnoconnell@gmail.com"
     def title = "Localizations (messages) plugin"
     def description = '''\
 The localizations plugin alters Grails to use the database as its means of
