@@ -26,10 +26,10 @@ configured to allow the use of Unicode data for this plugin to work.
 '''
 
     // URL to the plugin's documentation
-    def documentation = "https://github.com/halfbaked/grails-localization"
-    def issueManagement = [ system: "GitHub", url: "https://github.com/halfbaked/grails-localization/issues" ]
+    def documentation = "https://github.com/halfbaked/grails-localizations"
+    def issueManagement = [ system: "GitHub", url: "https://github.com/halfbaked/grails-localizations/issues" ]
     def developers = [ [ name: "Eamonn O'Connell", email: "eamonnoconnell@gmail.com" ]]
-    def scm = [ url: "https://github.com/halfbaked/grails-stylus-resources" ]
+    def scm = [ url: "https://github.com/halfbaked/grails-localizations" ]
 
     def doWithSpring = {
         // TODO Implement runtime spring config (optional)
