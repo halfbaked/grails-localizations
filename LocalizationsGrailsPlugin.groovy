@@ -32,16 +32,8 @@ Asumptions:
     def scm = [ url: "https://github.com/halfbaked/grails-localizations" ]
 
     def doWithSpring = {
-        // TODO Implement runtime spring config (optional)
+        // Implement runtime spring config (optional)
         messageSource(LocalizationMessageSource)
-    }
-
-    def doWithApplicationContext = { applicationContext ->
-        // TODO Implement post initialization spring config (optional)
-    }
-
-    def doWithWebDescriptor = { xml ->
-        // TODO Implement additions to web.xml (optional)
     }
 
     def doWithDynamicMethods = { ctx ->
@@ -55,14 +47,4 @@ Asumptions:
         }
     }
 
-    def onChange = { event ->
-        // TODO Implement code that is executed when any artefact that this plugin is
-        // watching is modified and reloaded. The event contains: event.source,
-        // event.application, event.manager, event.ctx, and event.plugin.
-    }
-
-    def onConfigChange = { event ->
-        // TODO Implement code that is executed when the project configuration changes.
-        // The event is the same as for 'onChange'.
-    }
 }
