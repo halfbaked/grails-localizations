@@ -43,7 +43,7 @@ Asumptions:
         }
 
         application.serviceClasses.each { serviceClass ->
-            serviceClass.metaClass.message = {Map parameters -> Localization.getMessage(parameters)}
+            serviceClass.metaClass.message = { Map parameters -> Localization.getMessage(parameters) }
         }
     }
 
