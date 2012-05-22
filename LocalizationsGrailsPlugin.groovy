@@ -1,12 +1,12 @@
 import org.grails.plugins.localization.*
 
 class LocalizationsGrailsPlugin {
-    def version = "1.4.1"
+    def version = "1.4.2"
     def dependsOn = [:]
 
     // TODO Fill in these fields
-    def author = "Paul Fernley, Eamonn O'Connell"
-    def authorEmail = "eamonnoconnell@gmail.com"
+    def author = "Paul Fernley"
+    def authorEmail = "paul@pfernley.orangehome.co.uk"
     def title = "Localizations (messages) plugin"
     def description = '''\
 The localizations plugin alters Grails to use the database as its means of
@@ -26,7 +26,10 @@ configured to allow the use of Unicode data for this plugin to work.
 '''
 
     // URL to the plugin's documentation
-    def documentation = "http://grails.org/Localizations+Plugin"
+    def documentation = "https://github.com/halfbaked/grails-localization"
+    def issueManagement = [ system: "GitHub", url: "https://github.com/halfbaked/grails-localization/issues" ]
+    def developers = [ [ name: "Eamonn O'Connell", email: "eamonnoconnell@gmail.com" ]]
+    def scm = [ url: "https://github.com/halfbaked/grails-stylus-resources" ]
 
     def doWithSpring = {
         // TODO Implement runtime spring config (optional)
