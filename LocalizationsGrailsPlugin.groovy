@@ -9,20 +9,20 @@ class LocalizationsGrailsPlugin {
     def authorEmail = "paul@pfernley.orangehome.co.uk"
     def title = "Localizations (messages) plugin"
     def description = '''\
-The localizations plugin alters Grails to use the database as its means of
-internationalization rather than message bundles (property files) in the i18n
-directory of your application. All property files in the i18n directory of your
-application (but not subdirectories of i18n) are automatically loaded in to the
-database the first time a message is requested after the plugin is installed.
-There is also an import facility (at a URL similar to
-http://myServer/myApp/localizations/imports) to load subsequently created
-property files - often the result of later installation of plugins. A 'message'
-method is added to all domain classes and service classes as a convenience. An
-'errorMessage' method is added to all domain classes that can set an error
-message on either the domain as a whole or on a particular property of the
-domain. A localizations controller and CRUD screens are included with the plugin.
-The screens assume you are using a layout called main. Your database must be
-configured to allow the use of Unicode data for this plugin to work.
+This plugin will pull i18n definitions from the database rather than from the standard properties files in the i18n folder.
+
+It will do the following:
+* Create a domain class and corresponding table called Localization
+* Prepopulate the table with all the message properties it finds in the i18n tables
+* Ensure Grails writes i18n messages based on what it finds in the database rather than the 118n folder
+
+In addtion the plugin also has these added features to help you:
+* A CRUD UI to add, delete, and update i18n messages
+* A cache for increased speed 
+
+Asumptions:
+* Your database supports unicode
+* Your application has a layout called main
 '''
 
     // URL to the plugin's documentation
