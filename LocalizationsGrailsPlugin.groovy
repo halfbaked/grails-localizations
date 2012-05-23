@@ -13,7 +13,7 @@ This plugin will pull i18n definitions from the database rather than from the st
 
 It will do the following:
 * Create a domain class and corresponding table called Localization
-* Prepopulate the table with all the message properties it finds in the i18n tables
+* Prepopulate the table with all the message properties it finds in the i18n folder
 * Ensure Grails writes i18n messages based on what it finds in the database rather than the 118n folder
 
 In addtion the plugin also has these added features to help you:
