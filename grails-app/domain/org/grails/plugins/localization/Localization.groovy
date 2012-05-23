@@ -163,7 +163,6 @@ class Localization {
 
     static load() {
         def count = Localization.count()
-      println("Loading localizations... $count")
         if (count == 0) {
             def path = RequestContextHolder.currentRequestAttributes().getServletContext().getRealPath("/")
             if (path) {
@@ -184,7 +183,6 @@ class Localization {
 
                     def locale
                     names.each {
-                        log.debug "locale found"
                         if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
                             locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
                         } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
