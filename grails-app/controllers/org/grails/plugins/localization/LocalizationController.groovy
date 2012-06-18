@@ -4,6 +4,8 @@ import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import org.codehaus.groovy.grails.commons.ApplicationHolder
 import org.grails.plugins.localization.*
+import grails.converters.JSON
+
 
 class LocalizationController {
 
@@ -146,30 +148,29 @@ class LocalizationController {
     }
 
     def imports = {
-        // The following line has the effect of checking whether this plugin
-        // has just been installed and, if so, gets the plugin to load all
-        // message bundles from the i18n directory BEFORE we attempt to display
-        // the property files here.
-        message(code: "home", default: "Home")
+      // The following line has the effect of checking whether this plugin
+      // has just been installed and, if so, gets the plugin to load all
+      // message bundles from the i18n directory BEFORE we attempt to display
+      // the property files here.
+      message(code: "home", default: "Home")
 
-        def names = []
-        def path = servletContext.getRealPath("/")
-        if (path) {
-            def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
-            if (dir.exists() && dir.canRead()) {
-                def name
-                dir.listFiles().each {
-                    if (it.isFile() && it.canRead() && it.getName().endsWith(".properties")) {
-                        name = it.getName()
-                        names << name.substring(0, name.length() - 11)
-                    }
-                }
-
-                names.sort()
+      def names = []
+      def path = servletContext.getRealPath("/")
+      if (path) {
+        def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
+        if (dir.exists() && dir.canRead()) {
+          def name
+          dir.listFiles().each {
+            if (it.isFile() && it.canRead() && it.getName().endsWith(".properties")) {
+              name = it.getName()
+              names << name.substring(0, name.length() - 11)
             }
+          }
+          names.sort()
         }
+      }
 
-        return [names: names]
+      return [names: names]
     }
 
     def load = {
@@ -217,4 +218,20 @@ class LocalizationController {
 
         redirect(action: "imports")
     }
+
+    // returns localizations as jsonp. Useful for displaying text in client side templates.
+    // It is possible to limit the messages returned by providing a codeBeginsWith parameter
+    // Currently, there is no caching. Will have to add. 
+    def jsonp = {
+      def padding = params.padding ?: 'messages' //JSONP
+      def localizations = Localization.createCriteria().list {
+        if (params.codeBeginsWith) ilike "code", "${params.codeBeginsWith}%"
+      }
+      def localizationsMap = [:]
+      localizations.each {
+        localizationsMap[it.code]=it.text
+      }
+      render "$padding=${localizationsMap as JSON};"
+    }
+
 }

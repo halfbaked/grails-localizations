@@ -2,22 +2,22 @@
   <author>Paul Fernley</author>
   <authorEmail>paul@pfernley.orangehome.co.uk</authorEmail>
   <title>Localizations (messages) plugin</title>
-  <description>The localizations plugin alters Grails to use the database as its means of
-internationalization rather than message bundles (property files) in the i18n
-directory of your application. All property files in the i18n directory of your
-application (but not subdirectories of i18n) are automatically loaded in to the
-database the first time a message is requested after the plugin is installed.
-There is also an import facility (at a URL similar to
-http://myServer/myApp/localizations/imports) to load subsequently created
-property files - often the result of later installation of plugins. A 'message'
-method is added to all domain classes and service classes as a convenience. An
-'errorMessage' method is added to all domain classes that can set an error
-message on either the domain as a whole or on a particular property of the
-domain. A localizations controller and CRUD screens are included with the plugin.
-The screens assume you are using a layout called main. Your database must be
-configured to allow the use of Unicode data for this plugin to work.
+  <description>This plugin will pull i18n definitions from the database rather than from the standard properties files in the i18n folder.
+
+It will do the following:
+* Create a domain class and corresponding table called Localization
+* Prepopulate the table with all the message properties it finds in the i18n folder
+* Ensure Grails writes i18n messages based on what it finds in the database rather than the 118n folder
+
+In addtion the plugin also has these added features to help you:
+* A CRUD UI to add, delete, and update i18n messages
+* A cache for increased speed 
+
+Asumptions:
+* Your database supports unicode
+* Your application has a layout called main
 </description>
-  <documentation>https://github.com/halfbaked/grails-localization</documentation>
+  <documentation>https://github.com/halfbaked/grails-localizations</documentation>
   <type>LocalizationsGrailsPlugin</type>
   <resources>
     <resource>org.grails.plugins.localization.LocalizationController</resource>
@@ -26,6 +26,7 @@ configured to allow the use of Unicode data for this plugin to work.
     <resource>org.grails.plugins.localization.LocalizationTagLib</resource>
   </resources>
   <repositories>
+    <repository name='http://artifactory.ts.eazybusiness.com/artifactory/repo' url='http://artifactory.ts.eazybusiness.com/artifactory/repo/' />
     <repository name='http://repo2.maven.org/maven2/' url='http://repo2.maven.org/maven2/' />
     <repository name='grailsCentral' url='http://plugins.grails.org' />
     <repository name='http://repo.grails.org/grails/plugins' url='http://repo.grails.org/grails/plugins/' />
@@ -43,16 +44,20 @@ configured to allow the use of Unicode data for this plugin to work.
       <dependency group='xerces' name='xercesImpl' version='2.9.1' />
     </compile>
     <runtime>
-      <dependency group='com.lowagie' name='itext' version='2.1.0' />
-      <dependency group='org.xhtmlrenderer' name='core-renderer' version='R8' />
+      <dependency group='org.apache.sshd' name='sshd-core' version='0.2.0' />
+      <dependency group='postgresql' name='postgresql' version='8.4-702.jdbc4' />
       <dependency group='org.bouncycastle' name='bcprov-jdk16' version='1.46' />
       <dependency group='org.bouncycastle' name='bcmail-jdk16' version='1.46' />
-      <dependency group='org.apache.sshd' name='sshd-core' version='0.2.0' />
+      <dependency group='org.springframework' name='spring-test' version='2.5' />
+      <dependency group='xmlunit' name='xmlunit' version='1.2' />
       <dependency group='mysql' name='mysql-connector-java' version='5.1.6' />
       <dependency group='org.bouncycastle' name='bctsp-jdk16' version='1.46' />
+      <dependency group='joda-time' name='joda-time' version='2.1' />
+      <dependency group='com.saasplex' name='agentsHelper' version='1.0.3' />
+      <dependency group='com.saasplex' name='resourceManagerClient' version='1.0.3' />
+      <dependency group='com.lowagie' name='itext' version='2.1.0' />
       <dependency group='dnsjava' name='dnsjava' version='2.0.8' />
-      <dependency group='xmlunit' name='xmlunit' version='1.2' />
-      <dependency group='org.springframework' name='spring-test' version='2.5' />
+      <dependency group='org.xhtmlrenderer' name='core-renderer' version='R8' />
     </runtime>
   </dependencies>
   <plugins>
@@ -63,26 +68,27 @@ configured to allow the use of Unicode data for this plugin to work.
     </test>
     <compile>
       <plugin group='org.grails.plugins' name='mail' version='1.0' />
-      <plugin group='org.grails.plugins' name='lesscss-resources' version='1.3.0' />
-      <plugin group='org.grails.plugins' name='coffeescript-resources' version='0.3.1' />
-      <plugin group='org.grails.plugins' name='stylus-resources' version='0.1' />
       <plugin group='org.grails.plugins' name='twitter-bootstrap' version='2.0.2.25' />
+      <plugin group='org.grails.plugins' name='coffeescript-resources' version='0.3.2' />
+      <plugin group='org.grails.plugins' name='stylus-resources' version='0.1' />
+      <plugin group='org.grails.plugins' name='lesscss-resources' version='1.3.0.3' />
+      <plugin group='org.grails.plugins' name='dustjs-resources' version='0.2' />
     </compile>
     <runtime>
-      <plugin group='org.grails.plugins' name='export' version='1.1' />
-      <plugin group='org.grails.plugins' name='cached-resources' version='1.0' />
       <plugin group='org.grails.plugins' name='zipped-resources' version='1.0' />
-      <plugin group='org.grails.plugins' name='background-thread' version='1.6' />
-      <plugin group='org.grails.plugins' name='quartz' version='0.4.2' />
-      <plugin group='org.grails.plugins' name='cache-headers' version='1.1.5' />
-      <plugin group='org.grails.plugins' name='rest' version='0.7' />
       <plugin group='org.grails.plugins' name='resources' version='1.1.6' />
-      <plugin group='org.grails.plugins' name='jquery' version='1.7.1' />
-      <plugin group='org.grails.plugins' name='rendering' version='0.4.3' />
-      <plugin group='org.grails.plugins' name='jdbc-pool' version='0.3' />
-      <plugin group='org.grails.plugins' name='database-migration' version='1.0' />
       <plugin group='org.grails.plugins' name='hibernate' version='2.0.1' />
+      <plugin group='org.grails.plugins' name='jquery' version='1.7.1' />
+      <plugin group='org.grails.plugins' name='cache-headers' version='1.1.5' />
+      <plugin group='org.grails.plugins' name='export' version='1.1' />
+      <plugin group='org.grails.plugins' name='database-migration' version='1.0' />
+      <plugin group='org.grails.plugins' name='quartz' version='0.4.2' />
+      <plugin group='org.grails.plugins' name='jdbc-pool' version='0.3' />
       <plugin group='org.grails.plugins' name='svn' version='1.0.2' />
+      <plugin group='org.grails.plugins' name='rest' version='0.7' />
+      <plugin group='org.grails.plugins' name='rendering' version='0.4.3' />
+      <plugin group='org.grails.plugins' name='background-thread' version='1.6' />
+      <plugin group='org.grails.plugins' name='cached-resources' version='1.0' />
     </runtime>
     <build>
       <plugin group='org.grails.plugins' name='tomcat' version='2.0.1' />

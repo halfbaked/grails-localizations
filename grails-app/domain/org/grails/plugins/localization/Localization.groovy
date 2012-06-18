@@ -42,6 +42,17 @@ class Localization {
         text(blank: false, size: 1..2000)
     }
 
+    def localeAsObj() {
+      switch(locale.size()){
+        case 4:
+          return new Locale(locale[0..1], locale[2..3])
+        case 2:
+          return new Locale(locale)
+        default:
+          return null
+      }  
+    }
+
     static String decodeMessage(String code, Locale locale) {
 
         if (!loaded) Localization.load()
