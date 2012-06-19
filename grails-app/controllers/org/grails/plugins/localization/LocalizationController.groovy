@@ -235,7 +235,6 @@ class LocalizationController {
         }
         order("locale")
       }
-      log.info "${localizations.size()} results found , language: ${currentLocale.getLanguage()} country: ${currentLocale.getCountry()}"
       def localizationsMap = [:]
       localizations.each {
         // if there are duplicate codes found, as the results are ordered by locale, the more specific should overwrite the less specific
