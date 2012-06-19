@@ -172,7 +172,7 @@ class Localization {
         return msg
     }
 
-    // repopulates the localization table from the i18n property files
+    // Repopulates the localization table from the i18n property files
     static reload() {
       Localization.executeUpdate("delete Localization")
       loaded = false
@@ -180,38 +180,42 @@ class Localization {
       resetAll()
     }
 
+    // Leaves the existing data in the database table intact and pulls in newly messages in the property files not found in the database
+    static syncWithPropertyFiles() {
+      loaded = false
+      load()
+      resetAll()
+    }
+
     static load() {
-        def count = Localization.count()
-        if (count == 0) {
-            def path = RequestContextHolder.currentRequestAttributes().getServletContext().getRealPath("/")
-            if (path) {
-                def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
-                if (!(dir.exists() && dir.canRead())) {   // if we're running in deploy war mode
-                    dir = new File(new File(path), "WEB-INF${File.separator}grails-app${File.separator}i18n")
+        def path = RequestContextHolder.currentRequestAttributes().getServletContext().getRealPath("/")
+        if (path) {
+            def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
+            if (!(dir.exists() && dir.canRead())) {   // if we're running in deploy war mode
+                dir = new File(new File(path), "WEB-INF${File.separator}grails-app${File.separator}i18n")
+            }
+
+            if (dir.exists() && dir.canRead()) {
+                def names = []
+                dir.listFiles().each {
+                    if (it.isFile() && it.canRead() && it.getName().endsWith(".properties")) {
+                        names << it.getName()
+                    }
                 }
 
-                if (dir.exists() && dir.canRead()) {
-                    def names = []
-                    dir.listFiles().each {
-                        if (it.isFile() && it.canRead() && it.getName().endsWith(".properties")) {
-                            names << it.getName()
-                        }
+                names.sort()
+
+                def locale
+                names.each {
+                    if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
+                        locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
+                    } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
+                        locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
+                    } else {
+                        locale = null
                     }
 
-                    names.sort()
-
-                    def locale
-                    names.each {
-                        if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                            locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
-                        } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
-                            locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
-                        } else {
-                            locale = null
-                        }
-
-                        Localization.loadPropertyFile(new File(dir, it), locale)
-                    }
+                    Localization.loadPropertyFile(new File(dir, it), locale)
                 }
             }
         }
