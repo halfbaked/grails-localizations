@@ -2,9 +2,8 @@ import org.grails.plugins.localization.*
 
 class LocalizationsGrailsPlugin {
     def version = "1.4.3"
+    def grailsVersion = "2.0 > *"
     def dependsOn = [:]
-
-    // TODO Fill in these fields
     def author = "Paul Fernley"
     def authorEmail = "paul@pfernley.orangehome.co.uk"
     def title = "Localizations (messages) plugin"

@@ -172,6 +172,14 @@ class Localization {
         return msg
     }
 
+    // repopulates the localization table from the i18n property files
+    static reload() {
+      Localization.executeUpdate("delete Localization")
+      loaded = false
+      load()
+      resetAll()
+    }
+
     static load() {
         def count = Localization.count()
         if (count == 0) {

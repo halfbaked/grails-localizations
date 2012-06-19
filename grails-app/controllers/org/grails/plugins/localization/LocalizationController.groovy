@@ -5,6 +5,7 @@ import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import org.codehaus.groovy.grails.commons.ApplicationHolder
 import org.grails.plugins.localization.*
 import grails.converters.JSON
+import org.springframework.context.i18n.LocaleContextHolder as LCH
 
 
 class LocalizationController {
@@ -223,12 +224,21 @@ class LocalizationController {
     // It is possible to limit the messages returned by providing a codeBeginsWith parameter
     // Currently, there is no caching. Will have to add. 
     def jsonp = {
+      def currentLocale = LCH.getLocale() //.toString.replaceAll('_','')
       def padding = params.padding ?: 'messages' //JSONP
       def localizations = Localization.createCriteria().list {
         if (params.codeBeginsWith) ilike "code", "${params.codeBeginsWith}%"
+        or {
+          eq "locale", "*"
+          eq "locale", currentLocale.getLanguage()
+          eq "locale", currentLocale.getLanguage() + currentLocale.getCountry()
+        }
+        order("locale")
       }
+      log.info "${localizations.size()} results found , language: ${currentLocale.getLanguage()} country: ${currentLocale.getCountry()}"
       def localizationsMap = [:]
       localizations.each {
+        // if there are duplicate codes found, as the results are ordered by locale, the more specific should overwrite the less specific
         localizationsMap[it.code]=it.text
       }
       render "$padding=${localizationsMap as JSON};"
