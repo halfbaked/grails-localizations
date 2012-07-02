@@ -6,6 +6,7 @@ import org.codehaus.groovy.grails.web.context.ServletContextHolder
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.support.WebApplicationContextUtils
 import org.springframework.web.servlet.support.RequestContextUtils
+import org.codehaus.groovy.grails.commons.ApplicationHolder
 
 class Localization {
 
@@ -23,7 +24,7 @@ class Localization {
     Byte relevance = 0
     String text
     Date dateCreated
-    Date lastUpdated
+    Date lastUpdated    
 
     static mapping = {
         columns {
@@ -188,7 +189,8 @@ class Localization {
     }
 
     static load() {
-        def path = RequestContextHolder.currentRequestAttributes().getServletContext().getRealPath("/")
+        def grailsApplication = findGrailsApplication()
+        def path = grailsApplication.mainContext.servletContext.getRealPath("/")
         if (path) {
             def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
             if (!(dir.exists() && dir.canRead())) {   // if we're running in deploy war mode
@@ -220,7 +222,7 @@ class Localization {
             }
         }
 
-        def size = ConfigurationHolder.config.localizations.cache.size.kb
+        def size = grailsApplication.config.localizations.cache.size.kb
         if (size != null && size instanceof Integer && size >= 0 && size <= 1024 * 1024) {
             maxCacheSize = size * 1024L
         }
@@ -273,7 +275,7 @@ class Localization {
 
     static loadPluginData(baseName) {
 
-        def path = RequestContextHolder.currentRequestAttributes().getServletContext().getRealPath("/")
+        def path = findGrailsApplication().mainContext.servletContext.getRealPath("/")
         if (path) {
             def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
             if (dir.exists() && dir.canRead()) {
@@ -342,5 +344,9 @@ class Localization {
         }
 
         return stats
+    }
+
+    static findGrailsApplication() {
+      return new Localization().domainClass.grailsApplication
     }
 }
