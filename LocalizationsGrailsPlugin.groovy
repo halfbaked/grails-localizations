@@ -1,7 +1,7 @@
 import org.grails.plugins.localization.*
 
 class LocalizationsGrailsPlugin {
-    def version = "1.4.4.4"
+    def version = "1.4.4.5"
     def grailsVersion = "2.0 > *"
     def dependsOn = [:]
     def author = "Paul Fernley"

@@ -10,7 +10,6 @@ import org.codehaus.groovy.grails.commons.ApplicationHolder
 
 class Localization {
 
-    private static loaded = false
     private static cache = new LinkedHashMap((int) 16, (float) 0.75, (boolean) true)
     private static long maxCacheSize = 128L * 1024L // Cache size in KB (default is 128kb)
     private static long currentCacheSize = 0L
@@ -55,8 +54,6 @@ class Localization {
     }
 
     static String decodeMessage(String code, Locale locale) {
-
-        if (!loaded) Localization.load()
 
         def key = code + keyDelimiter + locale.getLanguage() + locale.getCountry()
         def msg
@@ -176,14 +173,12 @@ class Localization {
     // Repopulates the localization table from the i18n property files
     static reload() {
       Localization.executeUpdate("delete Localization")
-      loaded = false
       load()
       resetAll()
     }
 
     // Leaves the existing data in the database table intact and pulls in newly messages in the property files not found in the database
     static syncWithPropertyFiles() {
-      loaded = false
       load()
       resetAll()
     }
@@ -227,7 +222,6 @@ class Localization {
             maxCacheSize = size * 1024L
         }
 
-        loaded = true
     }
 
     static loadPropertyFile(file, locale) {
@@ -349,4 +343,5 @@ class Localization {
     static findGrailsApplication() {
       return new Localization().domainClass.grailsApplication
     }
+
 }
