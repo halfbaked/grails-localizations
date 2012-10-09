@@ -8,7 +8,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils
 import org.springframework.web.servlet.support.RequestContextUtils
 import org.codehaus.groovy.grails.commons.ApplicationHolder
 
-class Localization {
+class Localization implements Serializable {
 
     private static loaded = false
     private static cache = new LinkedHashMap((int) 16, (float) 0.75, (boolean) true)
