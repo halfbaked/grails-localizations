@@ -1,12 +1,16 @@
 package org.grails.plugins.localization
 
+
 import grails.util.GrailsWebUtil
+import grails.util.Environment
+import grails.util.BuildSettingsHolder
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import org.codehaus.groovy.grails.web.context.ServletContextHolder
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.support.WebApplicationContextUtils
 import org.springframework.web.servlet.support.RequestContextUtils
 import org.codehaus.groovy.grails.commons.ApplicationHolder
+
 
 class Localization implements Serializable {
 
@@ -187,33 +191,42 @@ class Localization implements Serializable {
         def grailsApplication = findGrailsApplication()
         def path = grailsApplication.mainContext.servletContext.getRealPath("/")
         if (path) {
-            def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
-            if (!(dir.exists() && dir.canRead())) {   // if we're running in deploy war mode
-                dir = new File(new File(path), "WEB-INF${File.separator}grails-app${File.separator}i18n")
+            def dirs = []
+            if (Environment.isDevelopmentMode()) {
+              dirs << new File(new File(path).getParent(), "grails-app${File.separator}i18n")
+              // Look for i18n folders in inline plugins
+              def buildSettings = BuildSettingsHolder.getSettings()    
+              buildSettings.getInlinePluginDirectories().each { inlinePluginDir ->
+                dirs << new File(inlinePluginDir, "grails-app${File.separator}i18n")
+              }
+            } else {
+              dirs << new File(new File(path), "WEB-INF${File.separator}grails-app${File.separator}i18n")
             }
+            
+            dirs.each { dir ->
+              if (dir.exists() && dir.canRead()) {
+                  def names = []
+                  dir.listFiles().each {
+                      if (it.isFile() && it.canRead() && it.getName().endsWith(".properties")) {
+                          names << it.getName()
+                      }
+                  }
 
-            if (dir.exists() && dir.canRead()) {
-                def names = []
-                dir.listFiles().each {
-                    if (it.isFile() && it.canRead() && it.getName().endsWith(".properties")) {
-                        names << it.getName()
-                    }
-                }
+                  names.sort()
 
-                names.sort()
+                  def locale
+                  names.each {
+                      if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
+                          locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
+                      } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
+                          locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
+                      } else {
+                          locale = null
+                      }
 
-                def locale
-                names.each {
-                    if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
-                    } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
-                    } else {
-                        locale = null
-                    }
-
-                    Localization.loadPropertyFile(new File(dir, it), locale)
-                }
+                      Localization.loadPropertyFile(new File(dir, it), locale)
+                  }
+              }
             }
         }
 
