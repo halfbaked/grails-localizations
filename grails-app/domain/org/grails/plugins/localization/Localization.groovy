@@ -242,27 +242,18 @@ class Localization implements Serializable {
         def rec, txt
         def counts = [imported: 0, skipped: 0]
         props.stringPropertyNames().each {key ->
-            txt = props.getProperty(key)
-            if (key && key.length() <= 250 && txt && txt.length() <= 2000) {
-                rec = Localization.findByCodeAndLocale(key, loc)
-                if (!rec) {
-                    Localization.withTransaction {status ->
-                        rec = new Localization()
-                        rec.code = key
-                        rec.locale = loc
-                        rec.text = txt
-                        if (rec.save(flush: true)) {
-                            counts.imported = counts.imported + 1
-                        } else {
-                            counts.skipped = counts.skipped + 1
-                            status.setRollbackOnly()
-                        }
-                    }
+            rec = Localization.findByCodeAndLocale(key, loc)
+            if (!rec) {
+                txt = props.getProperty(key)
+                rec = new Localization([code: key, locale: loc, text: txt])
+                if (rec.validate()) {
+                    rec.save()
+                    counts.imported++
                 } else {
-                    counts.skipped = counts.skipped + 1
+                    counts.skipped++
                 }
             } else {
-                counts.skipped = counts.skipped + 1
+                counts.skipped++
             }
         }
 
