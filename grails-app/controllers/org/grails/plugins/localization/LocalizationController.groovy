@@ -1,7 +1,5 @@
 package org.grails.plugins.localization
 
-import org.codehaus.groovy.grails.commons.GrailsDomainClass
-import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import org.grails.plugins.localization.*
 import grails.converters.JSON
 import org.springframework.context.i18n.LocaleContextHolder as LCH
