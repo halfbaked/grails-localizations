@@ -4,12 +4,10 @@ package org.grails.plugins.localization
 import grails.util.GrailsWebUtil
 import grails.util.Environment
 import grails.util.BuildSettingsHolder
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import org.codehaus.groovy.grails.web.context.ServletContextHolder
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.support.WebApplicationContextUtils
 import org.springframework.web.servlet.support.RequestContextUtils
-import org.codehaus.groovy.grails.commons.ApplicationHolder
 
 
 class Localization implements Serializable {
@@ -43,7 +41,7 @@ class Localization implements Serializable {
             if (obj.locale) obj.relevance = obj.locale.length()
             return true
         })
-        text(blank: false, size: 1..2000)
+        text(blank: true, size: 0..2000)
     }
 
     def localeAsObj() {
@@ -216,13 +214,7 @@ class Localization implements Serializable {
 
                   def locale
                   names.each {
-                      if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                          locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
-                      } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
-                          locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
-                      } else {
-                          locale = null
-                      }
+                      locale = getLocaleForFileName(it)
 
                       Localization.loadPropertyFile(new File(dir, it), locale)
                   }
@@ -250,27 +242,18 @@ class Localization implements Serializable {
         def rec, txt
         def counts = [imported: 0, skipped: 0]
         props.stringPropertyNames().each {key ->
-            txt = props.getProperty(key)
-            if (key && key.length() <= 250 && txt && txt.length() <= 2000) {
-                rec = Localization.findByCodeAndLocale(key, loc)
-                if (!rec) {
-                    Localization.withTransaction {status ->
-                        rec = new Localization()
-                        rec.code = key
-                        rec.locale = loc
-                        rec.text = txt
-                        if (rec.save(flush: true)) {
-                            counts.imported = counts.imported + 1
-                        } else {
-                            counts.skipped = counts.skipped + 1
-                            status.setRollbackOnly()
-                        }
-                    }
+            rec = Localization.findByCodeAndLocale(key, loc)
+            if (!rec) {
+                txt = props.getProperty(key)
+                rec = new Localization([code: key, locale: loc, text: txt])
+                if (rec.validate()) {
+                    rec.save()
+                    counts.imported++
                 } else {
-                    counts.skipped = counts.skipped + 1
+                    counts.skipped++
                 }
             } else {
-                counts.skipped = counts.skipped + 1
+                counts.skipped++
             }
         }
 
@@ -302,18 +285,24 @@ class Localization implements Serializable {
 
                 def locale
                 names.each {
-                    if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
-                    } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
-                    } else {
-                        locale = null
-                    }
+                    locale = getLocaleForFileName(it)
 
                     Localization.loadPropertyFile(new File(dir, it), locale)
                 }
             }
         }
+    }
+    
+    static getLocaleForFileName(String fileName) {
+        def locale = null
+        
+        if (fileName ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
+            locale = new Locale(fileName.substring(fileName.length() - 16, fileName.length() - 14), fileName.substring(fileName.length() - 13, fileName.length() - 11))
+        } else if (fileName ==~ /.+_[a-z][a-z]\.properties$/) {
+            locale = new Locale(fileName.substring(fileName.length() - 13, fileName.length() - 11))
+        }
+        
+        locale
     }
 
     static resetAll() {
