@@ -2,7 +2,6 @@ package org.grails.plugins.localization
 
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
-import org.codehaus.groovy.grails.commons.ApplicationHolder
 import org.grails.plugins.localization.*
 import grails.converters.JSON
 import org.springframework.context.i18n.LocaleContextHolder as LCH
@@ -32,7 +31,10 @@ class LocalizationController {
 
             // This convolution is necessary because this plugin can't see the
             // domain classes of another plugin
-            def setting = ((GrailsDomainClass) ApplicationHolder.getApplication().getArtefact(DomainClassArtefactHandler.TYPE, "org.grails.plugins.settings.Setting")).newInstance()
+            def setting = grailsApplication.getDomainClass('org.grails.plugins.settings.Setting')?.newInstance()
+            if(!setting) //compatibility with Settings plugin v. 1.0
+                setting = grailsApplication.getDomainClass('Setting')?.newInstance()
+            
             max = setting.valueFor("pagination.max", max)
             dflt = setting.valueFor("pagination.default", dflt)
         }
