@@ -41,7 +41,7 @@ class Localization implements Serializable {
             if (obj.locale) obj.relevance = obj.locale.length()
             return true
         })
-        text(blank: false, size: 1..2000)
+        text(blank: true, size: 0..2000)
     }
 
     def localeAsObj() {
