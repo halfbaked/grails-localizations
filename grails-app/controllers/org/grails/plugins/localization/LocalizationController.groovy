@@ -51,20 +51,13 @@ class LocalizationController {
     }
 
     def show = {
-        def localization = Localization.get( params.id )
-
-        if(!localization) {
-            flash.message = "localization.not.found"
-            flash.args = [params.id]
-            flash.defaultMessage = "Localization not found with id ${params.id}"
-            redirect(action:list)
+        withLocalization { localization ->
+            return [ localization : localization ]
         }
-        else { return [ localization : localization ] }
     }
 
     def delete = {
-        def localization = Localization.get( params.id )
-        if(localization) {
+        withLocalization { localization ->
             localization.delete()
             Localization.resetThis(localization.code)
             flash.message = "localization.deleted"
@@ -72,24 +65,10 @@ class LocalizationController {
             flash.defaultMessage = "Localization ${params.id} deleted"
             redirect(action:list)
         }
-        else {
-            flash.message = "localization.not.found"
-            flash.args = [params.id]
-            flash.defaultMessage = "Localization not found with id ${params.id}"
-            redirect(action:list)
-        }
     }
 
     def edit = {
-        def localization = Localization.get( params.id )
-
-        if(!localization) {
-            flash.message = "localization.not.found"
-            flash.args = [params.id]
-            flash.defaultMessage = "Localization not found with id ${params.id}"
-            redirect(action:list)
-        }
-        else {
+        withLocalization { localization ->
             return [ localization : localization ]
         }
     }
@@ -241,6 +220,18 @@ class LocalizationController {
         localizationsMap[it.code]=it.text
       }
       render "$padding=${localizationsMap as JSON};"
+    }
+    
+    private def withLocalization(id="id", Closure c) {
+        def localization = Localization.get(params[id])
+        if(localization) {
+            c.call localization
+        } else {
+            flash.message = "localization.not.found"
+            flash.args = [params.id]
+            flash.defaultMessage = "Localization not found with id ${params.id}"
+            redirect(action:list)
+        }
     }
 
 }
