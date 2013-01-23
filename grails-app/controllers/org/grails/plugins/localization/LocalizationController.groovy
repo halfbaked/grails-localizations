@@ -163,14 +163,7 @@ class LocalizationController {
                 if (dir.exists() && dir.canRead()) {
                     def file = new File(dir, name)
                     if (file.isFile() && file.canRead()) {
-                        def locale
-                        if (name ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                            locale = new Locale(name.substring(name.length() - 16, name.length() - 14), name.substring(name.length() - 13, name.length() - 11))
-                        } else if (name ==~ /.+_[a-z][a-z]\.properties$/) {
-                            locale = new Locale(name.substring(name.length() - 13, name.length() - 11))
-                        } else {
-                            locale = null
-                        }
+                        def locale = Localization.getLocaleForFileName(name)
 
                         def counts = Localization.loadPropertyFile(file, locale)
                         flash.message = "localization.imports.counts"

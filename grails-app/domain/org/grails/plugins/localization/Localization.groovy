@@ -214,13 +214,7 @@ class Localization implements Serializable {
 
                   def locale
                   names.each {
-                      if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                          locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
-                      } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
-                          locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
-                      } else {
-                          locale = null
-                      }
+                      locale = getLocaleForFileName(it)
 
                       Localization.loadPropertyFile(new File(dir, it), locale)
                   }
@@ -300,18 +294,24 @@ class Localization implements Serializable {
 
                 def locale
                 names.each {
-                    if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
-                    } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
-                    } else {
-                        locale = null
-                    }
+                    locale = getLocaleForFileName(it)
 
                     Localization.loadPropertyFile(new File(dir, it), locale)
                 }
             }
         }
+    }
+    
+    static getLocaleForFileName(String fileName) {
+        def locale = null
+        
+        if (fileName ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
+            locale = new Locale(fileName.substring(fileName.length() - 16, fileName.length() - 14), fileName.substring(fileName.length() - 13, fileName.length() - 11))
+        } else if (fileName ==~ /.+_[a-z][a-z]\.properties$/) {
+            locale = new Locale(fileName.substring(fileName.length() - 13, fileName.length() - 11))
+        }
+        
+        locale
     }
 
     static resetAll() {
