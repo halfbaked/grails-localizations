@@ -187,10 +187,10 @@ class Localization implements Serializable {
 
     static load() {
         def grailsApplication = findGrailsApplication()
-		def i18nDirs = grailsApplication.config.grails.plugin.localizations.i18nDirs
         def path = grailsApplication.mainContext.servletContext.getRealPath("/")
+        def i18nDirs = grailsApplication.config.grails.plugin.localizations.i18nDirs.collect{ new File( "${path}${it}" ) }
         if (path) {
-            def dirs = i18nDirs ? i18nDirs.collect{ new File(it)} : []
+            def dirs = i18nDirs ? i18nDirs : []
             if (Environment.isDevelopmentMode()) {
               dirs << new File(new File(path).getParent(), "grails-app${File.separator}i18n")
               // Look for i18n folders in inline plugins
