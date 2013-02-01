@@ -4,6 +4,7 @@ package org.grails.plugins.localization
 import grails.util.GrailsWebUtil
 import grails.util.Environment
 import grails.util.BuildSettingsHolder
+import org.codehaus.groovy.grails.plugins.GrailsPluginUtils
 import org.codehaus.groovy.grails.web.context.ServletContextHolder
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.support.WebApplicationContextUtils
@@ -189,44 +190,32 @@ class Localization implements Serializable {
         def grailsApplication = findGrailsApplication()
         def path = grailsApplication.mainContext.servletContext.getRealPath("/")
         if (path) {
-            def dirs = []
-            if (Environment.isDevelopmentMode()) {
-              dirs << new File(new File(path).getParent(), "grails-app${File.separator}i18n")
-              // Look for i18n folders in inline plugins
-              def buildSettings = BuildSettingsHolder.getSettings()    
-              buildSettings.getInlinePluginDirectories().each { inlinePluginDir ->
-                dirs << new File(inlinePluginDir, "grails-app${File.separator}i18n")
+            def messageFiles = []
+            if (grailsApplication.warDeployed) {
+              grailsApplication.mainContext.getResources("**/WEB-INF/**/grails-app/i18n/**/*.properties")?.toList().each {
+                messageFiles << it.file
               }
-            } else {
-              dirs << new File(new File(path), "WEB-INF${File.separator}grails-app${File.separator}i18n")
+            } else { 
+              def i18nDirs = []
+              GrailsPluginUtils.getPluginI18nDirectories().each { i18nDirs << it.file }
+              i18nDirs << new File(new File(path).getParent(), "grails-app${File.separator}i18n")
+              i18nDirs.each{ dir ->
+                if (dir.exists() && dir.canRead()) {
+                  def p = ~/.*\.properties/
+                  dir.eachFileMatch(p) { messageFiles << it }
+                }                
+              }
             }
-            
-            dirs.each { dir ->
-              if (dir.exists() && dir.canRead()) {
-                  def names = []
-                  dir.listFiles().each {
-                      if (it.isFile() && it.canRead() && it.getName().endsWith(".properties")) {
-                          names << it.getName()
-                      }
-                  }
-
-                  names.sort()
-
-                  def locale
-                  names.each {
-                      locale = getLocaleForFileName(it)
-
-                      Localization.loadPropertyFile(new File(dir, it), locale)
-                  }
-              }
+            messageFiles.each { 
+              def locale = getLocaleForFileName(it.name)
+              Localization.loadPropertyFile(it, locale)
             }
         }
-
+             
         def size = grailsApplication.config.localizations.cache.size.kb
         if (size != null && size instanceof Integer && size >= 0 && size <= 1024 * 1024) {
             maxCacheSize = size * 1024L
-        }
-
+        }        
     }
 
     static loadPropertyFile(file, locale) {
