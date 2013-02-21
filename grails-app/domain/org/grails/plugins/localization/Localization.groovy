@@ -31,7 +31,6 @@ class Localization implements Serializable {
     static mapping = {
         columns {
             code index: "localizations_idx"
-            locale column: "loc", index: "localizations_idx"
         }
     }
 
