@@ -47,7 +47,21 @@ class LocalizationController {
             lst = Localization.list( params )
         }
 
-        [ localizationList: lst ]
+        [
+                localizationList: lst,
+                localizationListCount: Localization.count()
+        ]
+    }
+
+    def search() {
+        params.max = Math.min(params.max ? params.int('max') : 25, 100)
+        params.order = params.order ? params.order : (params.sort ? 'desc' : 'asc')
+        params.sort = params.sort ? params.sort : 'id'
+        def lst = Localization.search(params)
+        render(view: 'list', model: [
+                localizationList: lst,
+                localizationListCount: lst.size()
+        ])
     }
 
     def show = {
