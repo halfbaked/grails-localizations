@@ -8,6 +8,13 @@ import org.springframework.context.i18n.LocaleContextHolder as LCH
 class LocalizationController {
 
     def localizationService
+    def uniqLocales
+
+    def beforeInterceptor = [action: this.&getLocales, only: ['list', 'search']]
+
+    private def getLocales = {
+        uniqLocales = Localization.list()*.locale.unique().sort()
+    }
 
     def index = { redirect(action:list,params:params) }
 
@@ -49,7 +56,8 @@ class LocalizationController {
 
         [
                 localizationList: lst,
-                localizationListCount: Localization.count()
+                localizationListCount: Localization.count(),
+                uniqLocales: uniqLocales
         ]
     }
 
@@ -60,7 +68,8 @@ class LocalizationController {
         def lst = Localization.search(params)
         render(view: 'list', model: [
                 localizationList: lst,
-                localizationListCount: lst.size()
+                localizationListCount: lst.size(),
+                uniqLocales: uniqLocales
         ])
     }
 
