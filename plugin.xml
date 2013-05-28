@@ -1,4 +1,4 @@
-<plugin name='localizations' version='1.4.4.10' grailsVersion='2.0 &gt; *'>
+<plugin name='localizations' version='1.4.4.12' grailsVersion='2.0 &gt; *'>
   <author>Paul Fernley</author>
   <authorEmail>paul@pfernley.orangehome.co.uk</authorEmail>
   <title>Localizations (messages) plugin</title>
