@@ -1,14 +1,17 @@
 package org.grails.plugins.localization
 
+
 import grails.util.GrailsWebUtil
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Environment
+import grails.util.BuildSettingsHolder
+import org.codehaus.groovy.grails.plugins.GrailsPluginUtils
 import org.codehaus.groovy.grails.web.context.ServletContextHolder
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.support.WebApplicationContextUtils
 import org.springframework.web.servlet.support.RequestContextUtils
-import org.codehaus.groovy.grails.commons.ApplicationHolder
 
-class Localization {
+
+class Localization implements Serializable {
 
     private static cache = new LinkedHashMap((int) 16, (float) 0.75, (boolean) true)
     private static long maxCacheSize = 128L * 1024L // Cache size in KB (default is 128kb)
@@ -28,7 +31,7 @@ class Localization {
     static mapping = {
         columns {
             code index: "localizations_idx"
-            locale column: "loc", index: "localizations_idx"
+            locale column: "loc"
         }
     }
 
@@ -39,7 +42,7 @@ class Localization {
             if (obj.locale) obj.relevance = obj.locale.length()
             return true
         })
-        text(blank: false, size: 1..2000)
+        text(blank: true, size: 0..2000)
     }
 
     def localeAsObj() {
@@ -187,41 +190,32 @@ class Localization {
         def grailsApplication = findGrailsApplication()
         def path = grailsApplication.mainContext.servletContext.getRealPath("/")
         if (path) {
-            def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
-            if (!(dir.exists() && dir.canRead())) {   // if we're running in deploy war mode
-                dir = new File(new File(path), "WEB-INF${File.separator}grails-app${File.separator}i18n")
+            def messageFiles = []
+            if (grailsApplication.warDeployed) {
+              grailsApplication.mainContext.getResources("**/WEB-INF/**/grails-app/i18n/**/*.properties")?.toList().each {
+                messageFiles << it.file
+              }
+            } else { 
+              def i18nDirs = []
+              GrailsPluginUtils.getPluginI18nDirectories().each { i18nDirs << it.file }
+              i18nDirs << new File(new File(path).getParent(), "grails-app${File.separator}i18n")
+              i18nDirs.each{ dir ->
+                if (dir.exists() && dir.canRead()) {
+                  def p = ~/.*\.properties/
+                  dir.eachFileMatch(p) { messageFiles << it }
+                }                
+              }
             }
-
-            if (dir.exists() && dir.canRead()) {
-                def names = []
-                dir.listFiles().each {
-                    if (it.isFile() && it.canRead() && it.getName().endsWith(".properties")) {
-                        names << it.getName()
-                    }
-                }
-
-                names.sort()
-
-                def locale
-                names.each {
-                    if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
-                    } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
-                    } else {
-                        locale = null
-                    }
-
-                    Localization.loadPropertyFile(new File(dir, it), locale)
-                }
+            messageFiles.each { 
+              def locale = getLocaleForFileName(it.name)
+              Localization.loadPropertyFile(it, locale)
             }
         }
-
+             
         def size = grailsApplication.config.localizations.cache.size.kb
         if (size != null && size instanceof Integer && size >= 0 && size <= 1024 * 1024) {
             maxCacheSize = size * 1024L
-        }
-
+        }        
     }
 
     static loadPropertyFile(file, locale) {
@@ -237,27 +231,18 @@ class Localization {
         def rec, txt
         def counts = [imported: 0, skipped: 0]
         props.stringPropertyNames().each {key ->
-            txt = props.getProperty(key)
-            if (key && key.length() <= 250 && txt && txt.length() <= 2000) {
-                rec = Localization.findByCodeAndLocale(key, loc)
-                if (!rec) {
-                    Localization.withTransaction {status ->
-                        rec = new Localization()
-                        rec.code = key
-                        rec.locale = loc
-                        rec.text = txt
-                        if (rec.save(flush: true)) {
-                            counts.imported = counts.imported + 1
-                        } else {
-                            counts.skipped = counts.skipped + 1
-                            status.setRollbackOnly()
-                        }
-                    }
+            rec = Localization.findByCodeAndLocale(key, loc)
+            if (!rec) {
+                txt = props.getProperty(key)
+                rec = new Localization([code: key, locale: loc, text: txt])
+                if (rec.validate()) {
+                    rec.save()
+                    counts.imported++
                 } else {
-                    counts.skipped = counts.skipped + 1
+                    counts.skipped++
                 }
             } else {
-                counts.skipped = counts.skipped + 1
+                counts.skipped++
             }
         }
 
@@ -289,18 +274,24 @@ class Localization {
 
                 def locale
                 names.each {
-                    if (it ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 16, it.length() - 14), it.substring(it.length() - 13, it.length() - 11))
-                    } else if (it ==~ /.+_[a-z][a-z]\.properties$/) {
-                        locale = new Locale(it.substring(it.length() - 13, it.length() - 11))
-                    } else {
-                        locale = null
-                    }
+                    locale = getLocaleForFileName(it)
 
                     Localization.loadPropertyFile(new File(dir, it), locale)
                 }
             }
         }
+    }
+    
+    static getLocaleForFileName(String fileName) {
+        def locale = null
+        
+        if (fileName ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
+            locale = new Locale(fileName.substring(fileName.length() - 16, fileName.length() - 14), fileName.substring(fileName.length() - 13, fileName.length() - 11))
+        } else if (fileName ==~ /.+_[a-z][a-z]\.properties$/) {
+            locale = new Locale(fileName.substring(fileName.length() - 13, fileName.length() - 11))
+        }
+        
+        locale
     }
 
     static resetAll() {
@@ -342,6 +333,19 @@ class Localization {
 
     static findGrailsApplication() {
       return new Localization().domainClass.grailsApplication
+    }
+
+    static search(params) {
+        def expr = "%${params.q}%".toString().toLowerCase()
+        Localization.createCriteria().list(limit: params.max, order: params.order, sort: params.sort) {
+            if(params.locale) {
+                eq 'locale', params.locale
+            }
+            or {
+                ilike 'code', expr
+                ilike 'text', expr
+            }
+        }
     }
 
 }

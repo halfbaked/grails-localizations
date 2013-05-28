@@ -1,8 +1,5 @@
 package org.grails.plugins.localization
 
-import org.codehaus.groovy.grails.commons.GrailsDomainClass
-import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
-import org.codehaus.groovy.grails.commons.ApplicationHolder
 import org.grails.plugins.localization.*
 import grails.converters.JSON
 import org.springframework.context.i18n.LocaleContextHolder as LCH
@@ -11,6 +8,13 @@ import org.springframework.context.i18n.LocaleContextHolder as LCH
 class LocalizationController {
 
     def localizationService
+    def uniqLocales
+
+    def beforeInterceptor = [action: this.&getLocales, only: ['list', 'search']]
+
+    private def getLocales = {
+        uniqLocales = Localization.list()*.locale.unique().sort()
+    }
 
     def index = { redirect(action:list,params:params) }
 
@@ -32,7 +36,10 @@ class LocalizationController {
 
             // This convolution is necessary because this plugin can't see the
             // domain classes of another plugin
-            def setting = ((GrailsDomainClass) ApplicationHolder.getApplication().getArtefact(DomainClassArtefactHandler.TYPE, "org.grails.plugins.settings.Setting")).newInstance()
+            def setting = grailsApplication.getDomainClass('org.grails.plugins.settings.Setting')?.newInstance()
+            if(!setting) //compatibility with Settings plugin v. 1.0
+                setting = grailsApplication.getDomainClass('Setting')?.newInstance()
+            
             max = setting.valueFor("pagination.max", max)
             dflt = setting.valueFor("pagination.default", dflt)
         }
@@ -47,24 +54,33 @@ class LocalizationController {
             lst = Localization.list( params )
         }
 
-        [ localizationList: lst ]
+        [
+                localizationList: lst,
+                localizationListCount: Localization.count(),
+                uniqLocales: uniqLocales
+        ]
+    }
+
+    def search = {
+        params.max = (params.max && params.max.toInteger() > 0) ? Math.min(params.max.toInteger(), 50) : 20
+        params.order = params.order ? params.order : (params.sort ? 'desc' : 'asc')
+        params.sort = params.sort ?: "code"
+        def lst = Localization.search(params)
+        render(view: 'list', model: [
+                localizationList: lst,
+                localizationListCount: lst.size(),
+                uniqLocales: uniqLocales
+        ])
     }
 
     def show = {
-        def localization = Localization.get( params.id )
-
-        if(!localization) {
-            flash.message = "localization.not.found"
-            flash.args = [params.id]
-            flash.defaultMessage = "Localization not found with id ${params.id}"
-            redirect(action:list)
+        withLocalization { localization ->
+            return [ localization : localization ]
         }
-        else { return [ localization : localization ] }
     }
 
     def delete = {
-        def localization = Localization.get( params.id )
-        if(localization) {
+        withLocalization { localization ->
             localization.delete()
             Localization.resetThis(localization.code)
             flash.message = "localization.deleted"
@@ -72,24 +88,10 @@ class LocalizationController {
             flash.defaultMessage = "Localization ${params.id} deleted"
             redirect(action:list)
         }
-        else {
-            flash.message = "localization.not.found"
-            flash.args = [params.id]
-            flash.defaultMessage = "Localization not found with id ${params.id}"
-            redirect(action:list)
-        }
     }
 
     def edit = {
-        def localization = Localization.get( params.id )
-
-        if(!localization) {
-            flash.message = "localization.not.found"
-            flash.args = [params.id]
-            flash.defaultMessage = "Localization not found with id ${params.id}"
-            redirect(action:list)
-        }
-        else {
+        withLocalization { localization ->
             return [ localization : localization ]
         }
     }
@@ -184,14 +186,7 @@ class LocalizationController {
                 if (dir.exists() && dir.canRead()) {
                     def file = new File(dir, name)
                     if (file.isFile() && file.canRead()) {
-                        def locale
-                        if (name ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
-                            locale = new Locale(name.substring(name.length() - 16, name.length() - 14), name.substring(name.length() - 13, name.length() - 11))
-                        } else if (name ==~ /.+_[a-z][a-z]\.properties$/) {
-                            locale = new Locale(name.substring(name.length() - 13, name.length() - 11))
-                        } else {
-                            locale = null
-                        }
+                        def locale = Localization.getLocaleForFileName(name)
 
                         def counts = Localization.loadPropertyFile(file, locale)
                         flash.message = "localization.imports.counts"
@@ -241,6 +236,18 @@ class LocalizationController {
         localizationsMap[it.code]=it.text
       }
       render "$padding=${localizationsMap as JSON};"
+    }
+    
+    private def withLocalization(id="id", Closure c) {
+        def localization = Localization.get(params[id])
+        if(localization) {
+            c.call localization
+        } else {
+            flash.message = "localization.not.found"
+            flash.args = [params.id]
+            flash.defaultMessage = "Localization not found with id ${params.id}"
+            redirect(action:list)
+        }
     }
 
 }

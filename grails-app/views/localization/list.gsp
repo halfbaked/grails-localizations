@@ -11,6 +11,18 @@
             <g:localizationMenuButton/>
             <span class="menuButton"><g:link class="create" action="create"><g:message code="localization.new" default="New Localization" /></g:link></span>
         </div>
+
+        <div>
+            <g:form action="search" method="GET">
+                Search: <input name="q" size="48" value="${params.q}"/>
+                <g:select name="locale" from="${uniqLocales}" noSelection="['':'-Select locale-']" value="${params.locale}" />
+                <g:submitButton name="search" class="btn btn-small" value="Search"/>
+                <g:if test="${params.q}">
+                    <g:link class="btn btn-small" action="list">Reset</g:link>
+                </g:if>
+            </g:form>
+        </div>
+
         <div class="body">
             <h1><g:message code="localization.list" default="Localization List" /></h1>
             <g:if test="${flash.message}">
@@ -22,11 +34,11 @@
                     <thead>
                         <tr>
 
-                   	        <g:sortableColumn property="code" title="Code" titleKey="localization.code" />
+                   	        <g:sortableColumn property="code" title="Code" titleKey="localization.code" params="${params}" />
 
-                   	        <g:sortableColumn property="locale" title="Locale" titleKey="localization.locale" />
+                   	        <g:sortableColumn property="locale" title="Locale" titleKey="localization.locale" params="${params}" />
 
-                   	        <g:sortableColumn property="text" title="Text" titleKey="localization.text" />
+                   	        <g:sortableColumn property="text" title="Text" titleKey="localization.text" params="${params}" />
 
                         </tr>
                     </thead>
@@ -46,7 +58,7 @@
                 </table>
             </div>
             <div class="paginateButtons">
-                <g:localizationPaginate />
+                <g:paginate total="${localizationListCount}"/>
             </div>
         </div>
     </body>
