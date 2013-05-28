@@ -15,6 +15,7 @@
         <div>
             <g:form action="search" method="GET">
                 Search: <input name="q" size="48" value="${params.q}"/>
+                <g:select name="locale" from="${uniqLocales}" noSelection="['':'-Select locale-']" value="${params.locale}" />
                 <g:submitButton name="search" class="btn btn-small" value="Search"/>
                 <g:if test="${params.q}">
                     <g:link class="btn btn-small" action="list">Reset</g:link>
