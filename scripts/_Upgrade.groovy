@@ -10,4 +10,4 @@
 
 Ant.property(environment:"env")
 grailsHome = Ant.antProject.properties."env.GRAILS_HOME"
-Ant.copy(file:"${pluginBasedir}/grails-app/i18n/localizations.properties", todir:"${basedir}/grails-app/i18n")
+Ant.copy(file:"${localizationsPluginDir}/grails-app/i18n/localizations.properties", todir:"${basedir}/grails-app/i18n")
