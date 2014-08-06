@@ -29,5 +29,5 @@ Caching
 -------
 
 Localizations are cached for speed. You can reset the cache by going to 
-http://myServer/myApp/localizations/cache
+http://myServer/myApp/localization/cache
 
