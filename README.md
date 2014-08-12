@@ -11,7 +11,7 @@ Importing
 ----------
 
 There is also an import facility (at a URL similar to
-http://myServer/myApp/localizations/imports) to load subsequently created
+http://myServer/myApp/localization/imports) to load subsequently created
 property files - often the result of later installation of plugins. A 'message'
 method is added to all domain classes and service classes as a convenience. An
 'errorMessage' method is added to all domain classes that can set an error
