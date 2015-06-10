@@ -7,6 +7,6 @@ class LocalizationService {
     boolean transactional = true
 
     def hasPlugin(name) {
-        return org.codehaus.groovy.grails.plugins.PluginManagerHolder.getPluginManager()?.hasGrailsPlugin(name)
+        return grails.util.Holders.getPluginManager()?.hasGrailsPlugin(name)
     }
 }
