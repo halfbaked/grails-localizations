@@ -72,10 +72,12 @@ class Localization implements Serializable {
         }
 
         if (!msg) {
-            def lst = Localization.findAll(
-                    "from org.grails.plugins.localization.Localization as x where x.code = ? and x.locale in ('*', ?, ?) order by x.relevance desc",
-                    [code, locale.getLanguage(), locale.getLanguage() + locale.getCountry()])
-            msg = lst.size() > 0 ? lst[0].text : missingValue
+            Localization.withNewSession {
+                def lst = Localization.findAll(
+                        "from org.grails.plugins.localization.Localization as x where x.code = ? and x.locale in ('*', ?, ?) order by x.relevance desc",
+                        [code, locale.getLanguage(), locale.getLanguage() + locale.getCountry()])
+                msg = lst.size() > 0 ? lst[0].text : missingValue
+            }
 
             if (maxCacheSize > 0) {
                 synchronized (cache) {
