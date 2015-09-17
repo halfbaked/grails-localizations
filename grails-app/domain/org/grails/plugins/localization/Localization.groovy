@@ -4,6 +4,7 @@ package org.grails.plugins.localization
 import grails.util.GrailsWebUtil
 import grails.util.Environment
 import grails.util.BuildSettingsHolder
+import grails.util.Holders
 import org.codehaus.groovy.grails.plugins.GrailsPluginUtils
 import org.codehaus.groovy.grails.web.context.ServletContextHolder
 import org.springframework.web.context.request.RequestContextHolder
@@ -28,7 +29,7 @@ class Localization implements Serializable {
     Date dateCreated
     Date lastUpdated    
 
-    static mapping = {
+    static mapping = Holders.config.grails.plugin.localizations.mapping ?: {
         columns {
             code index: "localizations_idx"
             locale column: "loc"
