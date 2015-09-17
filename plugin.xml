@@ -1,4 +1,4 @@
-<plugin name='localizations' version='1.4.4.14' grailsVersion='2.0 &gt; *'>
+<plugin name='localizations' version='2.4' grailsVersion='2.0 &gt; *'>
   <author>Paul Fernley</author>
   <authorEmail>paul@pfernley.orangehome.co.uk</authorEmail>
   <title>Localizations (messages) plugin</title>
@@ -27,13 +27,4 @@ Asumptions:
     <resource>org.grails.plugins.localization.LocalizationService</resource>
     <resource>org.grails.plugins.localization.LocalizationTagLib</resource>
   </resources>
-  <repositories>
-    <repository name='grailsCentral' url='http://grails.org/plugins' />
-    <repository name='http://repo.grails.org/grails/core' url='http://repo.grails.org/grails/core/' />
-    <repository name='mavenCentral' url='http://repo1.maven.org/maven2/' />
-  </repositories>
-  <dependencies />
-  <plugins />
-  <runtimePluginRequirements />
-  <behavior />
 </plugin>
