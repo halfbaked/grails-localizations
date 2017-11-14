@@ -37,10 +37,10 @@ Asumptions:
 '''
 
     // URL to the plugin's documentation
-    def documentation = "https://github.com/vsachinv/grails-localizations"
-    def issueManagement = [ system: "GitHub", url: "https://github.com/vsachinv/grails-localizations/issues" ]
+    def documentation = "https://github.com/halfbaked/grails-localizations"
+    def issueManagement = [ system: "GitHub", url: "https://github.com/halfbaked/grails-localizations/issues" ]
     def developers = [ [ name: "Eamonn O'Connell", email: "eamonnoconnell@gmail.com" ], [ name: "Sachin Verma", email: "v.sachin.v@gmail.com" ]]
-    def scm = [ url: "https://github.com/vsachinv/grails-localizations" ]
+    def scm = [ url: "https://github.com/halfbaked/grails-localizations" ]
     def profiles = ['web']
 
     // Extra (optional) plugin metadata
