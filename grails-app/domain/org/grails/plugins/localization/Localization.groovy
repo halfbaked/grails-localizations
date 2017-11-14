@@ -1,12 +1,10 @@
 package org.grails.plugins.localization
 
-
+import grails.localizations.LocalizationsPluginUtils
 import grails.util.GrailsWebUtil
-import grails.util.Environment
-import grails.util.BuildSettingsHolder
 import grails.util.Holders
-import org.codehaus.groovy.grails.plugins.GrailsPluginUtils
-import org.codehaus.groovy.grails.web.context.ServletContextHolder
+import grails.web.context.ServletContextHolder
+import org.springframework.core.io.Resource
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.support.WebApplicationContextUtils
 import org.springframework.web.servlet.support.RequestContextUtils
@@ -27,7 +25,7 @@ class Localization implements Serializable {
     Byte relevance = 0
     String text
     Date dateCreated
-    Date lastUpdated    
+    Date lastUpdated
 
     static mapping = Holders.config.grails.plugin.localizations.mapping ?: {
         columns {
@@ -39,7 +37,7 @@ class Localization implements Serializable {
     static constraints = {
         code(blank: false, size: 1..250)
         locale(size: 1..4, unique: 'code', blank: false, matches: "\\*|([a-z][a-z]([A-Z][A-Z])?)")
-        relevance(validator: {val, obj ->
+        relevance(validator: { val, obj ->
             if (obj.locale) obj.relevance = obj.locale.length()
             return true
         })
@@ -47,14 +45,14 @@ class Localization implements Serializable {
     }
 
     def localeAsObj() {
-      switch(locale.size()){
-        case 4:
-          return new Locale(locale[0..1], locale[2..3])
-        case 2:
-          return new Locale(locale)
-        default:
-          return null
-      }  
+        switch (locale.size()) {
+            case 4:
+                return new Locale(locale[0..1], locale[2..3])
+            case 2:
+                return new Locale(locale)
+            default:
+                return null
+        }
     }
 
     static String decodeMessage(String code, Locale locale) {
@@ -176,55 +174,44 @@ class Localization implements Serializable {
         return msg
     }
 
-    // Repopulates the localization table from the i18n property files
+    // Repopulates the org.grails.plugins.localization table from the i18n property files
     static reload() {
-      Localization.executeUpdate("delete Localization")
-      load()
-      resetAll()
+        Localization.executeUpdate("delete Localization")
+        load()
+        resetAll()
     }
 
     // Leaves the existing data in the database table intact and pulls in newly messages in the property files not found in the database
     static syncWithPropertyFiles() {
-      load()
-      resetAll()
+        load()
+        resetAll()
     }
 
     static load() {
-        def grailsApplication = findGrailsApplication()
-        def path = grailsApplication.mainContext.servletContext.getRealPath("/")
-        if (path) {
-            def messageFiles = []
-            if (grailsApplication.warDeployed) {
-              grailsApplication.mainContext.getResources("**/WEB-INF/**/grails-app/i18n/**/*.properties")?.toList().each {
-                messageFiles << it.file
-              }
-            } else { 
-              def i18nDirs = []
-              GrailsPluginUtils.getPluginI18nDirectories().each { i18nDirs << it.file }
-              i18nDirs << new File(new File(path).getParent(), "grails-app${File.separator}i18n")
-              i18nDirs.each{ dir ->
-                if (dir.exists() && dir.canRead()) {
-                  def p = ~/.*\.properties/
-                  dir.eachFileMatch(p) { messageFiles << it }
-                }                
-              }
-            }
-            messageFiles.each { 
-              def locale = getLocaleForFileName(it.name)
-              Localization.loadPropertyFile(it, locale)
-            }
+        List<Resource> propertiesResources = []
+        LocalizationsPluginUtils.allPluginI18nResources?.each {
+            propertiesResources << it
         }
-             
-        def size = grailsApplication.config.localizations.cache.size.kb
+        LocalizationsPluginUtils.i18nResources?.each {
+            propertiesResources << it
+        }
+
+        Localization.log.debug("Properties files for localization : " + propertiesResources*.filename)
+
+        propertiesResources.each {
+            def locale = getLocaleForFileName(it.filename)
+            Localization.loadPropertyFile(new InputStreamReader(it.inputStream, "UTF-8"), locale)
+        }
+        def size = Holders.config.localizations.cache.size.kb
         if (size != null && size instanceof Integer && size >= 0 && size <= 1024 * 1024) {
             maxCacheSize = size * 1024L
-        }        
+        }
     }
 
-    static loadPropertyFile(file, locale) {
+    static loadPropertyFile(InputStreamReader inputStreamReader, locale) {
         def loc = locale ? locale.getLanguage() + locale.getCountry() : "*"
         def props = new Properties()
-        def reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))
+        def reader = new BufferedReader(inputStreamReader)
         try {
             props.load(reader)
         } finally {
@@ -233,7 +220,7 @@ class Localization implements Serializable {
 
         def rec, txt
         def counts = [imported: 0, skipped: 0]
-        props.stringPropertyNames().each {key ->
+        props.stringPropertyNames().each { key ->
             rec = Localization.findByCodeAndLocale(key, loc)
             if (!rec) {
                 txt = props.getProperty(key)
@@ -255,45 +242,15 @@ class Localization implements Serializable {
         return counts
     }
 
-    static loadPluginData(baseName) {
-
-        def path = findGrailsApplication().mainContext.servletContext.getRealPath("/")
-        if (path) {
-            def dir = new File(new File(path).getParent(), "grails-app${File.separator}i18n")
-            if (dir.exists() && dir.canRead()) {
-                def names = []
-                def name, ending
-                dir.listFiles().each {
-                    name = it.getName()
-                    if (name.startsWith(baseName) && name.endsWith(".properties") && it.isFile() && it.canRead()) {
-                        ending = name.substring(baseName.length(), name.length() - 11)
-                        if (ending == "" || ending ==~ /_[a-z][a-z]/ || ending ==~ /_[a-z][a-z]_[A-Z][A-Z]/) {
-                            names << name
-                        }
-                    }
-                }
-
-                names.sort()
-
-                def locale
-                names.each {
-                    locale = getLocaleForFileName(it)
-
-                    Localization.loadPropertyFile(new File(dir, it), locale)
-                }
-            }
-        }
-    }
-    
     static getLocaleForFileName(String fileName) {
         def locale = null
-        
+
         if (fileName ==~ /.+_[a-z][a-z]_[A-Z][A-Z]\.properties$/) {
             locale = new Locale(fileName.substring(fileName.length() - 16, fileName.length() - 14), fileName.substring(fileName.length() - 13, fileName.length() - 11))
         } else if (fileName ==~ /.+_[a-z][a-z]\.properties$/) {
             locale = new Locale(fileName.substring(fileName.length() - 13, fileName.length() - 11))
         }
-        
+
         locale
     }
 
@@ -334,14 +291,10 @@ class Localization implements Serializable {
         return stats
     }
 
-    static findGrailsApplication() {
-      return new Localization().domainClass.grailsApplication
-    }
-
     static search(params) {
         def expr = "%${params.q}%".toString().toLowerCase()
         Localization.createCriteria().list(limit: params.max, order: params.order, sort: params.sort) {
-            if(params.locale) {
+            if (params.locale) {
                 eq 'locale', params.locale
             }
             or {
