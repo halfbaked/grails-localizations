@@ -196,7 +196,7 @@ class Localization implements Serializable {
             propertiesResources << it
         }
 
-        log.debug("Properties files for localization : " + propertiesResources*.filename)
+        Localization.log.debug("Properties files for localization : " + propertiesResources*.filename)
 
         propertiesResources.each {
             def locale = getLocaleForFileName(it.filename)
