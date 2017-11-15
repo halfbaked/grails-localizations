@@ -1,25 +1,21 @@
 package org.grails.plugins.localization
 
 import grails.converters.JSON
+import grails.transaction.Transactional
 import org.springframework.context.i18n.LocaleContextHolder
 
 class LocalizationController {
-
-    def localizationService
-    def uniqLocales
-
-    def beforeInterceptor = [action: this.&getLocales, only: ['list', 'search']]
-
-    private def getLocales = {
-        uniqLocales = Localization.list()*.locale.unique().sort()
-    }
-
-    def index = { redirect(action: list, params: params) }
-
     // the delete, save and update actions only accept POST requests
     static allowedMethods = [delete: 'POST', save: 'POST', update: 'POST', reset: 'POST', load: 'POST']
 
-    def list = {
+    def localizationService
+
+    private List<String> getUniqLocales() {
+        //TODO need to optimize
+        return Localization.list()*.locale.unique().sort()
+    }
+
+    def index() {
         // The following line has the effect of checking whether this plugin
         // has just been installed and, if so, gets the plugin to load all
         // message bundles from the i18n directory BEFORE we attempt to display
@@ -59,7 +55,7 @@ class LocalizationController {
         ]
     }
 
-    def search = {
+    def search() {
         params.max = (params.max && params.max.toInteger() > 0) ? Math.min(params.max.toInteger(), 50) : 20
         params.order = params.order ? params.order : (params.sort ? 'desc' : 'asc')
         params.sort = params.sort ?: "code"
@@ -71,30 +67,32 @@ class LocalizationController {
         ])
     }
 
-    def show = {
+    def show() {
         withLocalization { localization ->
             return [localization: localization]
         }
     }
 
-    def delete = {
+    @Transactional
+    def delete() {
         withLocalization { localization ->
             localization.delete()
             Localization.resetThis(localization.code)
             flash.message = "localization.deleted"
             flash.args = [params.id]
             flash.defaultMessage = "Localization ${params.id} deleted"
-            redirect(action: list)
+            redirect(action: 'index')
         }
     }
 
-    def edit = {
+    def edit() {
         withLocalization { localization ->
             return [localization: localization]
         }
     }
 
-    def update = {
+    @Transactional
+    def update() {
         def localization = Localization.get(params.id)
         if (localization) {
             def oldCode = localization.code
@@ -105,7 +103,7 @@ class LocalizationController {
                 flash.message = "localization.updated"
                 flash.args = [params.id]
                 flash.defaultMessage = "Localization ${params.id} updated"
-                redirect(action: show, id: localization.id)
+                redirect(action: 'show', id: localization.id)
             } else {
                 render(view: 'edit', model: [localization: localization])
             }
@@ -113,39 +111,40 @@ class LocalizationController {
             flash.message = "localization.not.found"
             flash.args = [params.id]
             flash.defaultMessage = "Localization not found with id ${params.id}"
-            redirect(action: edit, id: params.id)
+            redirect(action: 'edit', id: params.id)
         }
     }
 
-    def create = {
+    def create() {
         def localization = new Localization()
         localization.properties = params
         return ['localization': localization]
     }
 
-    def save = {
+    @Transactional
+    def save() {
         def localization = new Localization(params)
         if (!localization.hasErrors() && localization.save()) {
             Localization.resetThis(localization.code)
             flash.message = "localization.created"
             flash.args = ["${localization.id}"]
             flash.defaultMessage = "Localization ${localization.id} created"
-            redirect(action: show, id: localization.id)
+            redirect(action: 'show', id: localization.id)
         } else {
             render(view: 'create', model: [localization: localization])
         }
     }
 
-    def cache = {
+    def cache() {
         return [stats: Localization.statistics()]
     }
 
-    def reset = {
+    def reset() {
         Localization.resetAll()
-        redirect(action: cache)
+        redirect(action: 'cache')
     }
 
-    def imports = {
+    def imports() {
         // The following line has the effect of checking whether this plugin
         // has just been installed and, if so, gets the plugin to load all
         // message bundles from the i18n directory BEFORE we attempt to display
@@ -171,7 +170,8 @@ class LocalizationController {
         return [names: names]
     }
 
-    def load = {
+    @Transactional
+    def load() {
         def name = params.file
         if (name) {
             name += ".properties"
@@ -241,7 +241,7 @@ class LocalizationController {
             flash.message = "localization.not.found"
             flash.args = [params.id]
             flash.defaultMessage = "Localization not found with id ${params.id}"
-            redirect(action: list)
+            redirect(action: 'index')
         }
     }
 
