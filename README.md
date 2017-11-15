@@ -23,13 +23,15 @@ dependencies {
 ```
 
 
-Add dependency to your buildConfig.groovy for Grails 2.x:
+Add dependency to your BuildConfig.groovy for Grails 2.x:
 
 ```
 plugins {
         compile ":localizations:2.4"
 }
 ```
+Source Code for Grails 2.x:
+https://github.com/vsachinv/grails-localizations/tree/Plugin_2.X
 
 ####Enhancement for Grails 3.x
 
