@@ -18,6 +18,10 @@ class GrailsLocalizationsGrailsPlugin extends Plugin {
     def author = "Sachin Verma"
     def authorEmail = "v.sachin.v@gmail.com"
     def title = "Localizations (messages) plugin"
+
+    def loadAfter = ['i18n']
+    def dependsOn = [i18n: "* > 3.0"]
+
     def description = '''\
 This plugin will pull i18n definitions from the database rather than from the standard properties files in the i18n folder for Grails 3 applications.
 
