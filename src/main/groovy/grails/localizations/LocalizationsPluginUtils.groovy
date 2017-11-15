@@ -5,6 +5,7 @@ import grails.core.GrailsApplicationClass
 import grails.util.BuildSettings
 import grails.util.Environment
 import grails.util.Holders
+import groovy.util.logging.Slf4j
 import org.grails.core.io.StaticResourceLoader
 import org.grails.core.support.internal.tools.ClassRelativeResourcePatternResolver
 import org.grails.plugins.BinaryGrailsPlugin
@@ -13,6 +14,7 @@ import org.springframework.core.io.Resource
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.core.io.support.ResourcePatternResolver
 
+@Slf4j
 class LocalizationsPluginUtils {
 
     static final String GRAILS_APP_I18N_PATH_COMPONENT = "/grails-app/i18n/";
@@ -30,10 +32,12 @@ class LocalizationsPluginUtils {
             if (propertiesFiles != null && propertiesFiles.length > 0) {
                 List<Resource> resourceList = new ArrayList<Resource>(propertiesFiles.length);
                 for (File propertiesFile : propertiesFiles) {
+                    log.debug "Project - "+ propertiesFile.name
                     resourceList.add(new FileSystemResource(propertiesFile));
                 }
                 resources = resourceList.toArray(new Resource[resourceList.size()]);
             } else {
+                log.debug "No Messages Properties files found within project"
                 resources = new Resource[0];
             }
         } else {
@@ -44,6 +48,7 @@ class LocalizationsPluginUtils {
                 resources = resourcePatternResolver.getResources(messageBundleLocationPattern);
             }
         }
+        //Sort based on underscore tokens count as more underscores means more exact locale value
         return resources.sort { x, y ->
             x.filename.tokenize('_').size() <=> y.filename.tokenize('_').size()
         }
@@ -55,11 +60,12 @@ class LocalizationsPluginUtils {
             if (it instanceof BinaryGrailsPlugin) {
                 List<Resource> pluginResources = getPluginI18nResources(it)
                 if (pluginResources) {
-                    println "Plugin - "+ it.name
+                    log.debug "Plugin - "+ it.name
                     resources.addAll(pluginResources)
                 }
             }
         }
+        //Sort based on underscore tokens count as more underscores means more exact locale value
         return resources.sort { x, y ->
             x.filename.tokenize('_').size() <=> y.filename.tokenize('_').size()
         }

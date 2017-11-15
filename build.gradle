@@ -10,14 +10,14 @@ buildscript {
 }
 
 version "0.1"
-group "grails.localizations"
+group "org.grails.plugins"
 
-apply plugin:"eclipse"
-apply plugin:"idea"
-apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.grails-plugin-publish"
-apply plugin:"org.grails.grails-gsp"
-apply plugin:"asset-pipeline"
+apply plugin: "eclipse"
+apply plugin: "idea"
+apply plugin: "org.grails.grails-plugin"
+apply plugin: "org.grails.grails-plugin-publish"
+apply plugin: "org.grails.grails-gsp"
+apply plugin: "asset-pipeline"
 
 repositories {
     mavenLocal()
@@ -33,8 +33,6 @@ dependencies {
     compile "org.grails:grails-dependencies"
     compile "org.grails:grails-web-boot"
     compile "org.grails.plugins:cache"
-    compile "org.grails.plugins:scaffolding"
-    console "org.grails:grails-console"
     profile "org.grails.profiles:web-plugin"
     provided "org.grails:grails-plugin-services"
     provided "org.grails:grails-plugin-domain-class"
@@ -48,18 +46,40 @@ bootRun {
 // enable if you wish to package this plugin as a standalone application
 bootRepackage.enabled = false
 grailsPublish {
-    // TODO: Provide values here
-    user = 'user'
-    key = 'key'
-    githubSlug = 'foo/bar'
+    githubSlug = 'halfbaked/grails-localizations'
     license {
         name = 'Apache-2.0'
     }
-    title = "My Plugin"
-    desc = "Full plugin description"
-    developers = [johndoe:"John Doe"]
-    portalUser = ""
-    portalPassword = ""    
+    title = "Localizations (messages) plugin"
+    desc = '''This plugin will pull i18n definitions from the database rather than from the standard properties files in the i18n folder for Grails 3 applications.
+
+It will do the following:
+* Create a domain class and corresponding table called Localization
+* Prepopulate the table with all the message properties it finds in the i18n folder
+* Ensure Grails writes i18n messages based on what it finds in the database rather than the 118n folder
+
+In addtion the plugin also has these added features to help you:
+* A CRUD UI to add, delete, and update i18n messages
+* A cache for increased speed 
+* A JSONP action which can be useful in client-side templating.
+
+Asumptions:
+* Your database supports unicode
+* Your application has a layout called main
+'''
+    developers = [sachinverma: "Sachin Verma", halfbaked: "Eamonn O'Connell"]
+}
+
+bintray {
+    pkg {
+        name = "$project.name"
+        issueTrackerUrl = "https://github.com/halfbaked/$project.name/issues"
+        vcsUrl = "https://github.com/halfbaked/$project.name"
+        version {
+            attributes = ['grails-plugin': "$project.group:$project.name"]
+            name = project.version
+        }
+    }
 }
 
 
