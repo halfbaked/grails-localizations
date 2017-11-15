@@ -304,4 +304,12 @@ class Localization implements Serializable {
         }
     }
 
+    static List<String> getUniqLocales() {
+        return Localization.createCriteria().list {
+            projections {
+                distinct 'locale'
+            }
+        }.sort()
+    }
+
 }

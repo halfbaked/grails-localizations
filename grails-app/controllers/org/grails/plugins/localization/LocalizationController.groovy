@@ -10,11 +10,6 @@ class LocalizationController {
 
     def localizationService
 
-    private List<String> getUniqLocales() {
-        //TODO need to optimize
-        return Localization.list()*.locale.unique().sort()
-    }
-
     def index() {
         // The following line has the effect of checking whether this plugin
         // has just been installed and, if so, gets the plugin to load all
@@ -51,7 +46,7 @@ class LocalizationController {
         [
                 localizationList     : lst,
                 localizationListCount: Localization.count(),
-                uniqLocales          : uniqLocales
+                uniqLocales          : Localization.uniqLocales
         ]
     }
 
@@ -60,10 +55,10 @@ class LocalizationController {
         params.order = params.order ? params.order : (params.sort ? 'desc' : 'asc')
         params.sort = params.sort ?: "code"
         def lst = Localization.search(params)
-        render(view: 'list', model: [
+        render(view: 'index', model: [
                 localizationList     : lst,
                 localizationListCount: lst.size(),
-                uniqLocales          : uniqLocales
+                uniqLocales          : Localization.uniqLocales
         ])
     }
 
