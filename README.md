@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.grails.plugins:grails-localizations:0.1.1'
+    compile 'org.grails.plugins:grails-localizations:0.1.2'
 }
 ```
 
