@@ -30,6 +30,8 @@ plugins {
         compile ":localizations:2.4"
 }
 ```
+Source Code for Grails 2.x:
+https://github.com/vsachinv/grails-localizations/tree/Plugin_2.X
 
 ####Enhancement for Grails 3.x
 
