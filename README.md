@@ -23,7 +23,7 @@ dependencies {
 ```
 
 
-Add dependency to your buildConfig.groovy for Grails 2.x:
+Add dependency to your BuildConfig.groovy for Grails 2.x:
 
 ```
 plugins {
