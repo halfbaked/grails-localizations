@@ -7,6 +7,38 @@ directory of your application. All property files in the i18n directory of your
 application (but not subdirectories of i18n) are automatically loaded in to the
 database the first time a message is requested after the plugin is installed.
 
+##Installation
+
+Add dependency to your build.gradle for Grails 3.x:
+
+```
+repositories {
+  ...
+  maven { url "http://dl.bintray.com/sachinverma/plugins" }
+}
+
+dependencies {
+    compile 'org.grails.plugins:grails-localizations:0.1'
+}
+```
+
+
+Add dependency to your buildConfig.groovy for Grails 2.x:
+
+```
+plugins {
+        compile ":localizations:2.4"
+}
+```
+
+####Enhancement for Grails 3.x
+
+You can enable/disable the localization value from DB using following configurations in `application.groovy` or `application.yml`
+
+```
+grails.plugin.localizations.enabled = true
+```
+
 Importing
 ----------
 
