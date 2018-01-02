@@ -189,12 +189,13 @@ class Localization implements Serializable {
 
     static load() {
         List<Resource> propertiesResources = []
-        LocalizationsPluginUtils.allPluginI18nResources?.each {
-            propertiesResources << it
-        }
         LocalizationsPluginUtils.i18nResources?.each {
             propertiesResources << it
         }
+        LocalizationsPluginUtils.allPluginI18nResources?.each {
+            propertiesResources << it
+        }
+
 
         Localization.log.debug("Properties files for localization : " + propertiesResources*.filename)
 
@@ -220,25 +221,28 @@ class Localization implements Serializable {
 
         def rec, txt
         def counts = [imported: 0, skipped: 0]
-        props.stringPropertyNames().each { key ->
-            rec = Localization.findByCodeAndLocale(key, loc)
-            if (!rec) {
-                txt = props.getProperty(key)
-                rec = new Localization([code: key, locale: loc, text: txt])
-                if (rec.validate()) {
-                    rec.save()
-                    counts.imported++
+        Localization.withSession { session ->
+            props.stringPropertyNames().each { key ->
+                rec = Localization.findByCodeAndLocale(key, loc)
+                if (!rec) {
+                    txt = props.getProperty(key)
+                    rec = new Localization([code: key, locale: loc, text: txt])
+                    if (rec.validate()) {
+                        rec.save()
+                        counts.imported++
+                    } else {
+                        counts.skipped++
+                    }
                 } else {
                     counts.skipped++
                 }
-            } else {
-                counts.skipped++
+            }
+            // Clear the whole cache if we actually imported any new keys
+            if (counts.imported > 0){
+                Localization.resetAll()
+                session.flush()
             }
         }
-
-        // Clear the whole cache if we actually imported any new keys
-        if (counts.imported > 0) Localization.resetAll()
-
         return counts
     }
 
