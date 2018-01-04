@@ -51,7 +51,7 @@ class LocalizationsPluginUtils {
         //Sort based on underscore tokens count as more underscores means more exact locale value
         return resources.sort { x, y ->
             x.filename.tokenize('_').size() <=> y.filename.tokenize('_').size()
-        }
+        }.reverse()
     }
 
     static List<Resource> getAllPluginI18nResources() {
@@ -68,7 +68,7 @@ class LocalizationsPluginUtils {
         //Sort based on underscore tokens count as more underscores means more exact locale value
         return resources.sort { x, y ->
             x.filename.tokenize('_').size() <=> y.filename.tokenize('_').size()
-        }
+        }.reverse()
 
     }
 

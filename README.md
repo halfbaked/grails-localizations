@@ -9,7 +9,7 @@ database the first time a message is requested after the plugin is installed.
 
 ##Installation
 
-Add dependency to your build.gradle for Grails 3.x:
+Add dependency to your build.gradle for > Grails 3.2.x:
 
 ```
 repositories {
@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.grails.plugins:grails-localizations:0.1.2'
+    compile 'org.grails.plugins:grails-localizations:0.1.3'
 }
 ```
 
@@ -33,7 +33,7 @@ plugins {
 Source Code for Grails 2.x:
 https://github.com/vsachinv/grails-localizations/tree/Plugin_2.X
 
-####Enhancement for Grails 3.x
+####Enhancement for > Grails 3.2.x
 
 You can enable/disable the localization value from DB using following configurations in `application.groovy` or `application.yml`
 
